@@ -1,10 +1,9 @@
 package jaxfunc.monads.f
 
 /**
- * Here we provide a monad instance for Scala's immutable list
- * (scala.collection.immutable.List).
+ * A monad instance for Scala's immutable list (scala.collection.immutable.List).
  *
- * List type constructor that takes a single type argument (* -> *),
+ * List is a type constructor that takes a single type argument (* -> *),
  * so we pass this to the Monad type constructor.
  * 
  * Chris Lewis / chris@thegodcode.net
