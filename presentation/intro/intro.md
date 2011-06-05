@@ -3,15 +3,15 @@
 
 # Monads for Real
 
-(featuring an overly-specific look at using monads for working with crashy functions)  
+(featuring an overly-specific look at using monads for working with crashy functions)
+
+<br/>
 
 ###### chris lewis λ [JaxFunc](http://www.meetup.com/JaxFunc/) 2011
+###### [@chrslws](http://twitter.com/chrslws)
+###### [chrsl.ws](http://chrsl.ws/)
+###### [github.com/chrislewis](https://github.com/chrislewis)   
 
-!SLIDE
-
-chris lewis λ [chrsl.ws](http://chrsl.ws/)  
-[github.com/chrislewis](https://github.com/chrislewis)  
-[@chrslws](http://twitter.com/chrslws)
 
 !SLIDE
 
@@ -28,10 +28,8 @@ chris lewis λ [chrsl.ws](http://chrsl.ws/)
     * Disjoint Unions ``scala.Either[+A, +B]``
     * Monadic Disjoint Unions
 * Language Support
-    * ``for`` Comprehension
 
 !SLIDE
-
 ### Scala
     
     class List[A](a: A) {
@@ -44,12 +42,12 @@ chris lewis λ [chrsl.ws](http://chrsl.ws/)
 
 ### Laws  
     
-Consider the specification for Java's ubiquitous [Object#equals](http://bit.ly/mhzALl):
+From the notes in Java's foundational [Object#equals](http://bit.ly/mhzALl):
     
 * It is reflexive: for any non-null reference value x, x.equals(x) should return true.
 * It is symmetric: for any non-null reference values x and y, x.equals(y) should return true if and only if y.equals(x) returns true.
-* ... et al
-    
+* ... et al 
+
 !SLIDE
 
 ### Type Constructors
@@ -116,7 +114,7 @@ This is possible in Scala.
 
 !SLIDE
 
-### A Monad
+### A Pure Functional Monad
     
     trait Monad[M[_]] {
       def unit[A](a: A): M[A]
@@ -143,7 +141,7 @@ This is possible in Scala.
     
 !SLIDE
 
-Every collection in Scala is a kind of monad.  
+Every collection in Scala is a kind of monad because they satisfy the monad laws*.
 Consider ``List``:
     
 * ``List[A]``
@@ -157,9 +155,37 @@ And ``Set``:
 * ``Set(1)``
 * ``Set(1).flatMap(i => Set(i.toString))``
 
+<br/>
+<cite>* left identity, right identity, associativity</cite>
 !SLIDE
 
-### Scala's Maybe Monad: ``Option[A]``
+### Scala's Maybe Monad: ``Option[+A]``
+    
+* ``Some[A]``
+* ``Some(1)``
+* ``Some(1).flatMap(i => Some(i.toString))``
+* ``None``
+
+!SLIDE
+
+### Scala's Maybe Monad: ``Option[+A]``
+    
+    sealed trait Option[+A] {
+      def get: A
+      
+      def flatMap[B](f: A => Option[B]): Option[B] =
+        if (isEmpty) None else f(this.get)
+    }
+    
+    case class Some[+A](a: A) extends Option[A] {
+      def get = a
+    }
+    
+    case object Nones extends Option[Nothing] {
+      def get = throw new NoSuchElementException("None.get")
+    }
+
+!SLIDE
     
     def strToInt(s: String): Option[Int] =
       try {
@@ -242,58 +268,140 @@ And ``Set``:
 ``strToInt("x5")`` .. fails ``strToInt`` with "Not an Int"
 
 !SLIDE
-
-Folding Leads to Nesting
+### A Monadic Disjoint Union
     
-* For every function in the flow, an additional depth is incurred
-
-!SLIDE
-    
-    sealed trait Result[+L, R] {
+    sealed trait Result[+L, +R] {
+      def fold[X](fl: L => X, ff: R => X): X
+      
       def map[LL >: L, B](f: R => B): Result[LL, B]
       
       def flatMap[LL >: L, B](f: R => Result[LL, B]): Result[LL, B]
-      
-      def fold[X](fl: L => X, ff: R => X): X
     }
     
 !SLIDE
     
-    case class Success[+L, R](r: R) extends Result[L, R] {
+    case class Success[+L, +R](r: R) extends Result[L, R] {
+      def fold[X](fl: L => X, fr: R => X) =
+        fr(r)
+        
       def map[LL >: L, B](f: R => B) =
         Success(f(r))
       
       def flatMap[LL >: L, B](f: R => Result[LL, B]) =
         f(r)
-      
-      def fold[X](fl: L => X, fr: R => X) =
-        fr(r)
     }
     
 !SLIDE
     
-    case class Failure[+L, R](l: L) extends Result[L, R] {
-      def map[LL >: L, B](f: R => B) =
-        Failure[LL, B](l)
-      
-      def flatMap[LL >: L, B](f: R => Result[LL, B]) =
-        Failure[LL, B](l)
-      
+    case class Failure[+L, +R](l: L) extends Result[L, R] {
       def fold[X](fl: L => X, fr: R => X) =
         fl(l)
+        
+      def map[LL >: L, B](f: R => B) =
+        Failure(l)
+      
+      def flatMap[LL >: L, B](f: R => Result[LL, B]) =
+        Failure(l)
     }
+    
+!SLIDE
+
+    def strToInt(s: String): Result[String, Int] =
+      try {
+        Success(s.toInt)
+      } catch {
+        case _ =>
+          Failure("'%s' does not represent an Int!".format(s))
+      }
+      
+    def asBoolean(i: Int): Result[String, Boolean] =
+      i match {
+        case 1 => Success(true)
+        case 0 => Success(false)
+        case x =>
+          Failure("Cannot deal with %s!".format(x))
+      }
+    
+!SLIDE
+
+    strToInt("0").flatMap(asBoolean)
+    // Success(false)
+    
+    strToInt("1").flatMap(asBoolean)
+    // Success(true)
+    
+    strToInt("5").flatMap(asBoolean)
+    // Failure(Cannot deal with 5!)
+    
+    strToInt("HI!").flatMap(asBoolean)
+    // Failure('HI!' does not represent an Int!)
 
 !SLIDE
 
+### Scala's ``for`` Comprehension
+    
+Note that this:
+    
+    strToInt("0").flatMap(asBoolean)
+    
+Is the same as this:
+    
+    strToInt("0").flatMap(
+      i => asBoolean(i).map(b => b)
+    )
+    
+!SLIDE
+
+### Scala's ``for`` Comprehension
+    
+The compiler translates expressions like this:
+    
     for {
-      x <- xs
-      y <- ys
-      z <- zs
-    } yield f(x, y, z)
+      i <- strToInt("0")
+      b <- asBoolean(i)
+    } yield b
     
-Desugar
+Into an expression like this:
     
-    xs.flatMap(x =>
-      ys.flatMap(y =>
-        zs.map(z =>
-          f(x, y, z))))
+    strToInt("0").flatMap(
+      i => asBoolean(i).map(b => b)
+    )
+      
+!SLIDE
+### A Realistic Workflow With Exceptions
+    
+    val purchase =
+      try {
+        val u = fetchUser(1)
+        val a = fetchAccount(u)
+        val p = makePurchase(a, item)
+        val t = recordTransaction(a, p)
+        p
+      } catch {
+        case e: UserException         => println(e)
+        case e: AccountException      => println(e)
+        case e: PurchaseException     => println(e)
+        case e: TransactionException  => println(e)
+      }
+    
+!SLIDE
+### The Same Workflow
+    
+    val purchase =
+      for {
+        u <- fetchUser(1)
+        a <- fetchAccount(u)
+        p <- makePurchase(a, item)
+        t <- recordTransaction(a, p)
+      } yield p
+    
+    purchase.fold(println, println)
+
+!SLIDE
+### Worth Reading
+    
+* John Hughes [Why functional programming matters](http://www.cs.utexas.edu/~shmat/courses/cs345/whyfp.pdf)
+* Philip Wadler [Monads for functional programming](http://homepages.inf.ed.ac.uk/wadler/papers/marktoberdorf/baastad.pdf)
+
+!SLIDE
+### Questions?
