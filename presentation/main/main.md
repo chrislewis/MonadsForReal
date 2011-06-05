@@ -1,5 +1,5 @@
 !SLIDE
-
+<div id="lambda">m ⋆ λa. n</div>
 
 # Monads for Real
 
@@ -400,8 +400,10 @@ Into an expression like this:
 !SLIDE
 ### Worth Reading
     
-* John Hughes [Why functional programming matters](http://www.cs.utexas.edu/~shmat/courses/cs345/whyfp.pdf)
-* Philip Wadler [Monads for functional programming](http://homepages.inf.ed.ac.uk/wadler/papers/marktoberdorf/baastad.pdf)
+* John Hughes
+  [Why functional programming matters](http://www.cs.utexas.edu/~shmat/courses/cs345/whyfp.pdf)
+* Philip Wadler
+  [Monads for functional programming](http://homepages.inf.ed.ac.uk/wadler/papers/marktoberdorf/baastad.pdf)
 
 !SLIDE
 ### Questions?

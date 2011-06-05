@@ -4,10 +4,10 @@ package jaxfunc.monads.f
  * In programming, monads generally provide the following:
  * 
  *  1) A type constructor M[_] that provides a means to obtain a
- *      monadic type M[A].
+ *      type M[A].
  *  2) A unit function that "lifts" some underlying value of type A
- *    into a monadic value of type M[A]
- *  3) A binding function which, when given a monad M[A] and a function
+ *    into a value of type M[A]
+ *  3) A binding function which, when given a value of type M[A] and a function
  *    A => M[B], will yield an instance of type M[B]
  * 
  * Further, any monad must satisfy the monad laws:
@@ -32,14 +32,14 @@ package jaxfunc.monads.f
 trait Monad[M[_]] {
   /*
    * The unit operation. Unrelated to Scala's Unit type; isomorphic to
-   * Haskell's return function. The unit operation lifts basic values
-   * into monadic ones.
+   * Haskell's return function. The unit operation lifts a value
+   * of type A into a type M[A].
    */
   def unit[A](a: A): M[A]
   
   /*
    * The bind operation. Isomorphic to >>= in Haskell. Scala's native
-   * equivalent is flatMap, where flatMap is effectively >>= partially
+   * equivalent is flatMap, where flatMap is effectively partially
    * applied to the underlying value. 
    */
   def bind[A, B](ma: M[A], f: A => M[B]): M[B]
