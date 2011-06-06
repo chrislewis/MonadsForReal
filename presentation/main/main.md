@@ -31,12 +31,44 @@
 
 !SLIDE
 ### Scala
-    
+###### A Class
+
     class List[A](a: A) {
       def concat(other: List[A]): List[A] = // implementation
       
       def map[B](f: A => B): List[B] = // implementation
     }
+    
+###### An `if` Expression
+
+    val i =
+      if(cond) {
+        1
+      } else {
+        2
+      }
+
+!SLIDE
+### Scala
+###### A `try` Expression
+
+    val i =
+      try {
+        "42".toInt
+      } catch {
+        case e: NumberFormatException => 0
+        case _                        => -1
+      }
+      
+###### A Pattern Match Expression
+
+    val i = 
+      42 match {
+        case x if x % 2 == 0  => x
+        case 5                => 5
+        case _                => -1
+      }
+      
 
 !SLIDE
 
@@ -98,7 +130,7 @@ You've used these before...
 
 ### Higher Order Polymorphism
     
-    trait Monad<T<_>> {
+    interface Monad<T<_>> {
       // ... won't compile
     }
     
