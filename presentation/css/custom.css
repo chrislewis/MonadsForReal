@@ -1,11 +1,11 @@
 body {
-  font-family:Serif;
-  font-size:2.5em;
+  font-family: Serif;
+  font-size: 2.5em;
 }
 pre, code {
-  font-size:30px;
+  font-size: 30px;
 }
-a:link, a:visited { color:#0484a9; }
+a:link, a:visited { color: #0484a9; }
 a:hover { color:#f57422; }
 
 cite {
@@ -18,7 +18,7 @@ li a {
 }
 
 #lambda {
-  opacity: .075;
+  opacity: .08;
   color: #00af85;
   position: fixed;
   bottom: 0px;

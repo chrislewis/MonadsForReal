@@ -10,7 +10,8 @@
 ###### chris lewis λ [JaxFunc](http://www.meetup.com/JaxFunc/) 2011
 ###### [@chrslws](http://twitter.com/chrslws)
 ###### [chrsl.ws](http://chrsl.ws/)
-###### [github.com/chrislewis](https://github.com/chrislewis)   
+###### [github.com/chrislewis](https://github.com/chrislewis)  
+###### source: [github.com/chrislewis/MonadsForReal](https://github.com/chrislewis/MonadsForReal)  
 
 
 !SLIDE
@@ -21,7 +22,7 @@
     * Type Constructors
     * Polymorphism
 * Monads
-    * Pure Functional Examples
+    * A Generic Example
     * Monads in the Scala Core
 * Error Control
     * The "Maybe" Monad ``scala.Option[+A]``
@@ -78,7 +79,10 @@ From the notes in Java's foundational [Object#equals](http://bit.ly/mhzALl):
     
 * It is reflexive: for any non-null reference value x, x.equals(x) should return true.
 * It is symmetric: for any non-null reference values x and y, x.equals(y) should return true if and only if y.equals(x) returns true.
-* ... et al 
+* ...
+
+<br/>
+When we say "law" what we mean is a contract to which you as the programmer must adhere.
 
 !SLIDE
 
@@ -146,7 +150,7 @@ This is possible in Scala.
 
 !SLIDE
 
-### A Pure Functional Monad
+### A Generic Monad
     
     trait Monad[M[_]] {
       def unit[A](a: A): M[A]
@@ -205,16 +209,20 @@ And ``Set``:
     sealed trait Option[+A] {
       def get: A
       
+      def isEmpty: Boolean
+      
       def flatMap[B](f: A => Option[B]): Option[B] =
         if (isEmpty) None else f(this.get)
     }
     
     case class Some[+A](a: A) extends Option[A] {
       def get = a
+      def isEmpty = false
     }
     
-    case object Nones extends Option[Nothing] {
+    case object None extends Option[Nothing] {
       def get = throw new NoSuchElementException("None.get")
+      def isEmpty = true
     }
 
 !SLIDE
@@ -296,8 +304,8 @@ And ``Set``:
       .fold(x => Left("Not an Int"), asBoolean)
         .fold(println, println)
         
-``strToInt("5")``  .. fails ``asBoolean`` with "Cannot deal with '5'!"
-``strToInt("x5")`` .. fails ``strToInt`` with "Not an Int"
+``strToInt("5")...`` fails ``asBoolean`` with "Cannot deal with '5'!"  
+``strToInt("x5")...`` fails ``strToInt`` with "Not an Int"
 
 !SLIDE
 ### A Monadic Disjoint Union
@@ -428,6 +436,9 @@ Into an expression like this:
       } yield p
     
     purchase.fold(println, println)
+    
+``purchase`` is of type ``Result[Exception, Purchase]``,  
+where ``Purchase`` is the type of ``p``.
 
 !SLIDE
 ### Worth Reading
